@@ -1,3 +1,5 @@
 venv
 .idea
 PlanningModule.exe
+data*.xls
+data*.xlsx

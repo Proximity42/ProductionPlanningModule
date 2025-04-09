@@ -6,12 +6,12 @@ import random
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QDialog
 
+from planning_methods.base import StrategyRegistry, create_extended_matrix
 from calculator import ProcessingTimeCalculator
 from diagrams import DiagramCreator
 from file_handler import FileHandler
 from main_form import Ui_MainWindow
 from bi_form import Ui_Dialog
-from algorithms import PlanningAlgorithms
 from threads import BIDialogLoadingThread
 
 
@@ -29,10 +29,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.planning_matrix = []
         self.bi_form = None
 
+        StrategyRegistry.load_strategies('planning_methods')
+
         self.methods_combo_box.addItems(
             (
                 method_name
-                for method_name in PlanningAlgorithms.PLANNING_ALGORITHMS
+                for method_name in StrategyRegistry.get_strategies()
             )
         )
 
@@ -83,12 +85,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             return
         chosen_method = self.methods_combo_box.currentText()
-        extended_matrix = PlanningAlgorithms.create_extended_matrix(
+        extended_matrix = create_extended_matrix(
             self.source_matrix
         )
-        self.result_matrix = PlanningAlgorithms.PLANNING_ALGORITHMS[
-            chosen_method
-        ](extended_matrix, self.machines, self.details)
+        self.result_matrix = StrategyRegistry.get_strategy(chosen_method).sorted_matrix(
+            extended_matrix, self.machines, self.details
+        )
         self.planning_matrix = ProcessingTimeCalculator.build_planning_matrix(
             self.result_matrix, self.machines, self.details
         )
